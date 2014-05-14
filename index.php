@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Embedded Instagram Hashtag
+Plugin Name: Instagram Feeds
 Plugin URI: http://ignitionmedia.ca
-Description: Allows displaying an instagram feed of a hashtag
+Description: Makes it easy to embed instagram feeds in sites
 Version: 1.0
 Author: Ignition Media
 Author URI: http://ignitiomedia.ca
