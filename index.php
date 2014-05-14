@@ -20,3 +20,18 @@ function get_instagram_feed(){
 	global $ig_plugin;
 	return $ig_plugin->fetch_feed();
 }
+
+function get_instagram_feed_with_hashtag($hashtag = 'hotsandwiches'){
+	global $ig_plugin;
+	return $ig_plugin->fetch_hashtag_photos($hashtag);
+}
+
+function get_instagram_feed_with_handle($handle){
+	global $ig_plugin;
+	return $ig_plugin->fetch_user_photos_with_handle($handle);
+}
+
+function get_instagram_feed_with_user_id($id){
+	global $ig_plugin;
+	return $ig_plugin->fetch_user_photos($id);
+}

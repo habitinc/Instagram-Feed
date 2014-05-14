@@ -125,19 +125,61 @@ class IGHashTagPlugin extends AllSpark
 			return array();
 		}
 		else{
-		
-			$raw_response = wp_remote_get("https://api.instagram.com/v1/tags/" . $this->hashtag . "/media/recent?access_token=" . $this->authkey);
-			$response = wp_remote_retrieve_body($raw_response);
-			$response_obj = json_decode($response);
-						
-			$photos = array();
-	
-			foreach($response_obj->data as $rawphoto){
-				$photos[] = $rawphoto->images;
-			}
-			
-			return $photos;
+			return $this->fetch_hashtag_photos($this->hashtag);
 		}
+	}
+	
+	public function fetch_hashtag_photos($hashtag){
+
+		if(!$this->authkey){
+			return false;
+		}
+
+		return $this->fetch_photos_from_url("https://api.instagram.com/v1/tags/" . $hashtag . "/media/recent");
+	}
+	
+	public function fetch_user_photos_with_handle($handle){
+				
+		if(!$this->authkey){
+			return false;
+		}
+		
+		return $this->fetch_user_photos($this->fetch_id_for_handle($handle));
+	}
+	
+	public function fetch_user_photos($user_id){
+		
+		if(!$this->authkey){
+			return false;
+		}
+
+		return $this->fetch_photos_from_url("https://api.instagram.com/v1/users/" . $user_id . "/media/recent");
+	}
+	
+	private function fetch_id_for_handle($handle){
+		
+		if(get_transient( __CLASS__ . __FUNCTION__ . $handle)){
+			return get_transient( __CLASS__ . __FUNCTION__ . $handle);
+		}
+
+		$raw_response = wp_remote_get("https://api.instagram.com/v1/users/search?q=" . $handle . "&access_token=" . $this->authkey);
+		$users = json_decode(wp_remote_retrieve_body($raw_response))->data;
+		
+		foreach($users as $user){
+			if($user->username == $handle){
+				set_transient( __CLASS__ . __FUNCTION__ . $handle, $user->id, 0 );
+			}
+		}
+		
+		return $this->fetch_id_for_handle($handle);
+	}
+	
+	private function fetch_photos_from_url($url){
+		$raw_response = wp_remote_get($url . "?access_token=" . $this->authkey);
+		$response = wp_remote_retrieve_body($raw_response);
+		$response_obj = json_decode($response);
+						
+		return $response_obj->data;
 	}
 	
 	public function do_admin_ui(){
