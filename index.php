@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: Instagram Feeds
-Plugin URI: http://ignitionmedia.ca
+Plugin URI: https://github.com/habitinc/events
 Description: Makes it easy to embed instagram feeds in sites
-Version: 1.0
-Author: Ignition Media
-Author URI: http://ignitiomedia.ca
+Version: 1.1
+Author: Habit
+Author URI: http://habithq.ca
 */
 
 if ( ! defined('ABSPATH') ) {
@@ -14,7 +14,7 @@ if ( ! defined('ABSPATH') ) {
 
 require_once 'IGHashTagPlugin.class.php';
 
-$ig_plugin = new IGHashTagPlugin();
+$ig_plugin = IGHashTagPlugin::getInstance();
 
 function get_instagram_feed(){
 	global $ig_plugin;

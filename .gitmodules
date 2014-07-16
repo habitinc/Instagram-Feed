@@ -1,0 +1,3 @@
+[submodule "AllSpark"]
+	path = AllSpark
+	url = git://github.com/habitinc/AllSpark

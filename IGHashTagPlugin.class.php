@@ -1,33 +1,36 @@
 <?php
 
-if(!class_exists('AllSpark')):
-	require_once('AllSpark.class.php');
-endif;
+if( ! class_exists( 'AllSpark' ) )
+	require_once( 'AllSpark/AllSpark.class.php' );
 
-class IGHashTagPlugin extends AllSpark
-{
-	var $authkey;
-	var $hashtag;
-	var $clientID;
-	var $clientSecret;
-	var $client_auth;
-	var $redirect_url_path = 'instagram_auth';
+
+class IGHashTagPlugin extends AllSpark {
+	public $authkey;
+	public $hashtag;
+	public $clientID;
+	public $clientSecret;
+	public $client_auth;
+	public $redirect_url_path = 'instagram_auth';
+	
+	private $clientIDKey = 'hbt_IGHashTagPlugin_clientID';
+	private $clientSecretKey = 'hbt_IGHashTagPlugin_clientSecret';
+	private $clientAuthKey = 'hbt_IGHashTagPlugin_clientKey';
+	private $clientDetailsKey = 'hbt_IGHashTagPlugin_clientDetails';
+	private $hashTagKey = 'hbt_IGHashTagPlugin_hashTag';
 	
 	public function __construct(){
 		parent::__construct();
 		$this->listen_for_ajax_action('instagram_auth');
 		
-		$this->clientID		= get_option($this->clientIDKey);
-		$this->clientSecret	= get_option($this->clientSecretKey);
-		$this->client_auth	= get_option($this->clientAuthKey);
+		$this->clientID = get_option($this->clientIDKey);
+		$this->clientSecret = get_option($this->clientSecretKey);
+		$this->client_auth = get_option($this->clientAuthKey);
 		
-		$this->authkey 		= get_option($this->clientAuthKey);
-		$this->hashtag		= get_option($this->hashTagKey);
+		$this->authkey  = get_option($this->clientAuthKey);
+		$this->hashtag = get_option($this->hashTagKey);
 	}
 	
 	public function init(){
-		parent::init();
-		
 		if(isset($_GET['start_auth'])){
 			$clientID = $_POST['clientID'];
 			$clientSecret = $_POST['clientSecret'];
@@ -42,22 +45,22 @@ class IGHashTagPlugin extends AllSpark
 		}
 		
 		if(isset($_GET['doing_auth'])){
-		
+			
 			$redirect_url = $this->get_redirect_url();
-
+			
 			$authcode = get_transient('ig-auth');
 			$authcode = $authcode['code'];
 			delete_transient('ig-auth-error');
-
+			
 			if($this->client_auth == ''){
 				
 				$response = wp_remote_post( 'https://instagram.com/oauth/access_token', array(
 					'body' => array(
-						'client_id'		=> $this->clientID,
-						'client_secret'	=> $this->clientSecret,
-						'grant_type'	=> 'authorization_code',
-						'redirect_uri'	=> $this->get_redirect_url(),
-						'code'			=> $authcode
+						'client_id' => $this->clientID,
+						'client_secret' => $this->clientSecret,
+						'grant_type' => 'authorization_code',
+						'redirect_uri' => $this->get_redirect_url(),
+						'code' => $authcode
 					)
 				));
 				
@@ -65,8 +68,6 @@ class IGHashTagPlugin extends AllSpark
 				
 				update_option($this->clientAuthKey, $authorization->access_token);
 				update_option($this->clientDetailsKey, $authorization->user);
-				
-				//delete_transient('ig-auth');
 				
 				wp_redirect( admin_url( 'options-general.php?page=instagram-feed' ) );
 			}
@@ -84,12 +85,6 @@ class IGHashTagPlugin extends AllSpark
 		
 		delete_transient( 'ig-auth' );
 	}
-	
-	private $clientIDKey		= 'hbt_IGHashTagPlugin_clientID';
-	private $clientSecretKey	= 'hbt_IGHashTagPlugin_clientSecret';
-	private $clientAuthKey		= 'hbt_IGHashTagPlugin_clientKey';
-	private $clientDetailsKey	= 'hbt_IGHashTagPlugin_clientDetails';
-	private $hashTagKey			= 'hbt_IGHashTagPlugin_hashTag';
 	
 	public function pluginDidActivate(){
 		parent::pluginDidActivate();
@@ -119,7 +114,7 @@ class IGHashTagPlugin extends AllSpark
 	public function admin_menu(){
 		add_options_page( 'Instagram Feed', 'Instagram Feed', 'moderate_comments', 'instagram-feed', array(&$this, 'do_admin_ui'));
 	}
-		
+	
 	public function fetch_feed(){
 		if(!$this->hashtag || !$this->authkey){
 			return array();
@@ -130,29 +125,23 @@ class IGHashTagPlugin extends AllSpark
 	}
 	
 	public function fetch_hashtag_photos($hashtag){
-
-		if(!$this->authkey){
+		if(!$this->authkey)
 			return false;
-		}
 
 		return $this->fetch_photos_from_url("https://api.instagram.com/v1/tags/" . $hashtag . "/media/recent");
 	}
 	
 	public function fetch_user_photos_with_handle($handle){
-				
-		if(!$this->authkey){
+		if(!$this->authkey)
 			return false;
-		}
 		
 		return $this->fetch_user_photos($this->fetch_id_for_handle($handle));
 	}
 	
 	public function fetch_user_photos($user_id){
-		
-		if(!$this->authkey){
+		if(!$this->authkey)
 			return false;
-		}
-
+		
 		return $this->fetch_photos_from_url("https://api.instagram.com/v1/users/" . $user_id . "/media/recent");
 	}
 	
@@ -161,7 +150,7 @@ class IGHashTagPlugin extends AllSpark
 		if(get_transient( __CLASS__ . __FUNCTION__ . $handle)){
 			return get_transient( __CLASS__ . __FUNCTION__ . $handle);
 		}
-
+		
 		$raw_response = wp_remote_get("https://api.instagram.com/v1/users/search?q=" . $handle . "&access_token=" . $this->authkey);
 		$users = json_decode(wp_remote_retrieve_body($raw_response))->data;
 		
@@ -178,7 +167,7 @@ class IGHashTagPlugin extends AllSpark
 		$raw_response = wp_remote_get($url . "?access_token=" . $this->authkey);
 		$response = wp_remote_retrieve_body($raw_response);
 		$response_obj = json_decode($response);
-						
+		
 		return $response_obj->data;
 	}
 	
@@ -191,7 +180,6 @@ class IGHashTagPlugin extends AllSpark
 	}
 	
 	public function instagram_auth(){
-
 		if(isset($_REQUEST['error_reason'])){
 			set_transient( 'ig-auth-error', $_REQUEST, YEAR_IN_SECONDS );
 			wp_redirect( admin_url( 'options-general.php?page=instagram-feed' ) );
@@ -206,5 +194,7 @@ class IGHashTagPlugin extends AllSpark
 		
 		wp_redirect( admin_url( 'options-general.php?page=instagram-feed' ) );
 	}
+	
 }
-?>
+
+IGHashTagPlugin::getInstance();
