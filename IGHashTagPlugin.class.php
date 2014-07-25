@@ -172,7 +172,7 @@ class IGHashTagPlugin extends AllSpark {
 	}
 	
 	public function do_admin_ui(){
-		require_once('ui/main.ui.php');
+		$this->addUI( 'ui/main.ui.php' );
 	}
 	
 	protected function get_client_details(){
